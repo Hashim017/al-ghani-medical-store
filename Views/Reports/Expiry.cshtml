@@ -29,7 +29,7 @@ else
 {
 <table class="table table-sm table-striped">
     <thead>
-        <tr><th>Medicine</th><th>Batch</th><th>Expired on</th><th class="text-end">Tablets</th><th class="text-end">Cost value</th></tr>
+        <tr><th>Medicine</th><th>Batch</th><th>Expired on</th><th class="text-end">Tablets</th><th class="text-end">Cost value</th><th></th></tr>
     </thead>
     <tbody>
         @foreach (var r in Model.Expired)
@@ -40,6 +40,10 @@ else
             <td>@r.ExpiryDate.ToString("dd MMM yyyy")</td>
             <td class="text-end">@r.QuantityLeft</td>
             <td class="text-end">@r.CostValue.ToString("N2")</td>
+            <td class="text-end text-nowrap">
+                <a asp-controller="StockAdjustments" asp-action="Create" asp-route-batchId="@r.BatchId" class="btn btn-sm btn-outline-danger">Write off</a>
+                <a asp-controller="PurchaseReturns" asp-action="Create" asp-route-batchId="@r.BatchId" class="btn btn-sm btn-outline-primary">Return to supplier</a>
+            </td>
         </tr>
             }
     </tbody>
@@ -47,6 +51,7 @@ else
         <tr class="fw-bold">
             <td colspan="4" class="text-end">Total loss</td>
             <td class="text-end">@Model.Expired.Sum(x => x.CostValue).ToString("N2")</td>
+            <td></td>
         </tr>
     </tfoot>
 </table>

@@ -53,10 +53,14 @@
             <a class="nav-item-link@(On("Purchases"))" asp-controller="Purchases" asp-action="Index"><svg class="ico"><use href="#i-box" /></svg>Purchases</a>
             <a class="nav-item-link@(On("Reports", "Expiry"))" asp-controller="Reports" asp-action="Expiry"><svg class="ico"><use href="#i-clock" /></svg>Expiry</a>
             <a class="nav-item-link@(On("Reports", "LowStock"))" asp-controller="Reports" asp-action="LowStock"><svg class="ico"><use href="#i-alert" /></svg>Low stock</a>
+            <a class="nav-item-link@(On("StockAdjustments"))" asp-controller="StockAdjustments" asp-action="Index"><svg class="ico"><use href="#i-sliders" /></svg>Adjustments</a>
 
             <div class="nav-group">Reports</div>
             <a class="nav-item-link@(On("Reports", "Daily"))" asp-controller="Reports" asp-action="Daily"><svg class="ico"><use href="#i-chart" /></svg>Daily report</a>
 
+            <div class="nav-group">Returns</div>
+            <a class="nav-item-link@(On("SaleReturns"))" asp-controller="SaleReturns" asp-action="Index"><svg class="ico"><use href="#i-undo" /></svg>Customer returns</a>
+            <a class="nav-item-link@(On("PurchaseReturns"))" asp-controller="PurchaseReturns" asp-action="Index"><svg class="ico"><use href="#i-undo" /></svg>Supplier returns</a>
             <div class="nav-group">Setup</div>
             <a class="nav-item-link@(On("Suppliers"))" asp-controller="Suppliers" asp-action="Index"><svg class="ico"><use href="#i-truck" /></svg>Suppliers</a>
             <a class="nav-item-link@(On("Categories"))" asp-controller="Categories" asp-action="Index"><svg class="ico"><use href="#i-tag" /></svg>Categories</a>

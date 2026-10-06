@@ -1,0 +1,67 @@
+@using AlGhaniMedicalStore.Models
+@using AlGhaniMedicalStore.ViewModels
+@model AdjustVm
+@{
+    ViewData["Title"] = "Adjust stock";
+    var batches = (List<BatchOpt>)ViewBag.Batches;
+}
+
+<h2>Adjust stock</h2>
+
+<form method="post" class="panel" style="max-width:640px">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Batch</label>
+        <select asp-for="BatchId" class="form-select" id="batch">
+            <option value="0">Select batch</option>
+            @foreach (var b in batches)
+            {
+            <option value="@b.Id" data-qty="@b.Qty">@b.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Reason</label>
+            <select asp-for="Reason" asp-items="Html.GetEnumSelectList<AdjustmentReason>()" class="form-select"></select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Change in tablets, use minus to remove</label>
+            <div class="input-group">
+                <input asp-for="Change" type="number" class="form-control" id="change" />
+                <button type="button" class="btn btn-outline-danger" id="all">Remove all</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Note</label>
+        <input asp-for="Note" class="form-control" />
+    </div>
+
+    <p>Stock after change: <span id="after" class="fw-bold">-</span></p>
+
+    <button class="btn btn-primary">Save adjustment</button>
+    <a asp-action="Index" class="btn btn-light">Cancel</a>
+</form>
+
+@section Scripts {
+    <script>
+        const sel = document.getElementById('batch');
+        const chg = document.getElementById('change');
+        const out = document.getElementById('after');
+
+        function qty() { return parseInt(sel.selectedOptions[0]?.dataset.qty || '0'); }
+        function show() {
+            const q = qty(), c = parseInt(chg.value) || 0;
+            out.textContent = sel.value === '0' ? '-' : (q + c) + ' tablets';
+            out.className = (q + c < 0) ? 'text-danger fw-bold' : 'fw-bold';
+        }
+        sel.addEventListener('change', show);
+        chg.addEventListener('input', show);
+        document.getElementById('all').addEventListener('click', () => { chg.value = -qty(); show(); });
+        show();
+    </script>
+}

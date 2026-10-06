@@ -2,6 +2,7 @@ namespace AlGhaniMedicalStore.ViewModels;
 
 public class ExpiryRow
 {
+	public int BatchId { get; set; }
 	public string MedicineName { get; set; } = "";
 	public string BatchNumber { get; set; } = "";
 	public DateOnly ExpiryDate { get; set; }

@@ -5,7 +5,7 @@
     var t = Model.Today;
     var inv = CultureInfo.InvariantCulture;
     var max = Model.Week.Max(w => w.Total);
-    if (max <= 0) max = 1;
+    if (max <= 0) {max = 1;}
     var cashK = t.SalesTotal > 0 ? t.Cash / t.SalesTotal : 0m;
 }
 

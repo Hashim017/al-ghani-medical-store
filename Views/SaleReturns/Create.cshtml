@@ -1,0 +1,97 @@
+@using System.Globalization
+@model AlGhaniMedicalStore.ViewModels.SaleReturnVm
+@{
+    ViewData["Title"] = "New return";
+    var inv = CultureInfo.InvariantCulture;
+}
+
+<h2>New customer return</h2>
+
+@if (TempData["Error"] != null)
+{
+<div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form method="get" asp-action="Create" class="row g-2 mb-4">
+    <div class="col-auto">
+        <input name="saleId" type="number" min="1" class="form-control" placeholder="Bill number" required />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">Find bill</button>
+    </div>
+</form>
+
+@if (Model.SaleId > 0)
+{
+<form method="post" class="panel">
+    <input type="hidden" name="SaleId" value="@Model.SaleId" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <p>
+        <strong>Bill @Model.SaleId</strong> from @Model.SaleDate.ToString("dd MMM yyyy hh:mm tt"),
+        total @Model.Total.ToString("N2")
+    </p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Batch</th>
+                <th>Unit</th>
+                <th class="text-end">Sold</th>
+                <th class="text-end">Already returned</th>
+                <th class="text-end">Refund per unit</th>
+                <th style="width:120px">Return now</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Lines.Count; i++)
+                {
+                    var l = Model.Lines[i];
+                    var left = l.SoldQty - l.ReturnedQty;
+            <tr>
+                <td>@l.Medicine</td>
+                <td>@l.Batch</td>
+                <td>@l.Unit</td>
+                <td class="text-end">@l.SoldQty</td>
+                <td class="text-end">@l.ReturnedQty</td>
+                <td class="text-end">@l.UnitRefund.ToString("N2")</td>
+                <td>
+                    <input type="hidden" name="Lines[@i].SaleItemId" value="@l.SaleItemId" />
+                    <input type="number" name="Lines[@i].ReturnQty" min="0" max="@left"
+                           value="@l.ReturnQty" class="form-control form-control-sm rq"
+                           data-price="@(l.UnitRefund.ToString("0.00", inv))" @(left == 0 ? "disabled" : "") />
+                </td>
+            </tr>
+                }
+        </tbody>
+    </table>
+
+    <div class="row align-items-end">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Reason</label>
+            <input name="Reason" value="@Model.Reason" class="form-control" />
+        </div>
+        <div class="col-md-6 mb-3 text-md-end">
+            <div class="fs-4">Refund: <strong id="refund">0.00</strong></div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary">Save return</button>
+    <a asp-action="Index" class="btn btn-light">Cancel</a>
+</form>
+}
+
+@section Scripts {
+    <script>
+        const inputs = [...document.querySelectorAll('.rq')];
+        function sum() {
+            let t = 0;
+            inputs.forEach(i => t += (parseFloat(i.value) || 0) * parseFloat(i.dataset.price));
+            const el = document.getElementById('refund');
+            if (el) el.textContent = t.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        inputs.forEach(i => i.addEventListener('input', sum));
+        sum();
+    </script>
+}

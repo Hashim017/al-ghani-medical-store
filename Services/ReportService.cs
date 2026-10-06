@@ -72,6 +72,7 @@ public class ReportService
             .Select(b => new ExpiryRow
             {
                 MedicineName = b.Medicine!.Name,
+                BatchId = b.Id,
                 BatchNumber = b.BatchNumber,
                 ExpiryDate = b.ExpiryDate,
                 QuantityLeft = b.QuantityLeft,
@@ -95,6 +96,7 @@ public class ReportService
             .Select(b => new ExpiryRow
             {
                 MedicineName = b.Medicine!.Name,
+                BatchId = b.Id,
                 BatchNumber = b.BatchNumber,
                 ExpiryDate = b.ExpiryDate,
                 QuantityLeft = b.QuantityLeft,

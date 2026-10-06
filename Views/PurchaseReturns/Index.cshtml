@@ -1,0 +1,32 @@
+@model List<AlGhaniMedicalStore.Models.PurchaseReturn>
+    @{
+    ViewData["Title"] = "Supplier returns";
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Supplier returns</h2>
+        <a asp-action="Create" class="btn btn-primary">New return</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr><th>Date</th><th>Supplier</th><th>Medicine</th><th>Batch</th><th class="text-end">Tablets</th><th>Reason</th><th class="text-end">Credit</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+        {
+            foreach (var i in r.Items)
+            {
+            <tr>
+                <td>@r.ReturnDate.ToString("dd MMM yyyy")</td>
+                <td>@r.Supplier?.Name</td>
+                <td>@i.Batch?.Medicine?.Name</td>
+                <td>@i.Batch?.BatchNumber</td>
+                <td class="text-end">@i.TabletsReturned</td>
+                <td>@r.Reason</td>
+                <td class="text-end">@r.CreditTotal.ToString("N2")</td>
+            </tr>
+            }
+        }
+        </tbody>
+    </table>
