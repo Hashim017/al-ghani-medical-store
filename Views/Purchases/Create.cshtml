@@ -1,0 +1,175 @@
+@using AlGhaniMedicalStore.Models
+@using AlGhaniMedicalStore.ViewModels
+@model PurchaseCreateVm
+@{
+    ViewData["Title"] = "New Purchase";
+    var meds = (List<MedOption>)ViewBag.Meds;
+    var initial = Model.Lines.Select(l => new
+    {
+        id = l.MedicineId,
+        name = meds.FirstOrDefault(m => m.Id == l.MedicineId)?.Name ?? "",
+        batch = l.BatchNumber ?? "",
+        expiry = l.ExpiryDate == default ? "" : l.ExpiryDate.ToString("yyyy-MM-dd"),
+        unit = (int)l.Unit,
+        qty = l.Quantity,
+        cost = l.UnitCost
+    }).ToList();
+}
+
+<h2>New Purchase</h2>
+
+<form asp-action="Create" method="post" id="purchaseForm">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label asp-for="SupplierId" class="form-label">Supplier</label>
+            <select asp-for="SupplierId" asp-items="(SelectList)ViewBag.Suppliers" class="form-select">
+                <option value="0">Select supplier</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="BillNumber" class="form-label">Supplier bill no</label>
+            <input asp-for="BillNumber" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="PurchaseDate" class="form-label">Date</label>
+            <input asp-for="PurchaseDate" type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="PaymentType" class="form-label">Payment</label>
+            <select asp-for="PaymentType" asp-items="Html.GetEnumSelectList<PaymentType>()" class="form-select"></select>
+        </div>
+    </div>
+
+    <datalist id="medList">
+        @foreach (var m in meds)
+        {
+        <option value="@m.Name"></option>
+        }
+    </datalist>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th style="min-width:220px">Medicine</th>
+                    <th>Batch no</th>
+                    <th>Expiry</th>
+                    <th>Unit</th>
+                    <th style="width:90px">Qty</th>
+                    <th style="width:120px">Cost per unit</th>
+                    <th class="text-end">Line total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+
+    <button type="button" class="btn btn-outline-primary" id="addRow">Add medicine</button>
+
+    <h4 class="text-end mt-3">Total: <span id="grandTotal">0.00</span></h4>
+
+    <button class="btn btn-primary">Save purchase</button>
+    <a asp-action="Index" class="btn btn-light">Cancel</a>
+</form>
+
+@section Scripts {
+    <script>
+        const meds = @Html.Raw(Json.Serialize(meds));
+        const initial = @Html.Raw(Json.Serialize(initial));
+        const medMap = new Map(meds.map(m => [m.name.toLowerCase(), m.id]));
+
+        const form = document.getElementById('purchaseForm');
+        const tbody = document.getElementById('rows');
+
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function addRow(d) {
+            d = d || {};
+            const unit = d.unit || 2;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <input class="form-control med-name" list="medList" autocomplete="off"
+                           placeholder="Type medicine name" value="${esc(d.name || '')}" />
+                    <input type="hidden" class="med-id" value="${d.id || ''}" />
+                </td>
+                <td><input class="form-control batch" required value="${esc(d.batch || '')}" /></td>
+                <td><input type="date" class="form-control expiry" required value="${d.expiry || ''}" /></td>
+                <td>
+                    <select class="form-select unit">
+                        <option value="1" ${unit == 1 ? 'selected' : ''}>Box</option>
+                        <option value="2" ${unit == 2 ? 'selected' : ''}>Strip</option>
+                        <option value="3" ${unit == 3 ? 'selected' : ''}>Tablet</option>
+                    </select>
+                </td>
+                <td><input type="number" min="1" class="form-control qty" required value="${d.qty || ''}" /></td>
+                <td><input type="number" min="0" step="any" class="form-control cost" required value="${d.cost === undefined ? '' : d.cost}" /></td>
+                <td class="text-end line-total">0.00</td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger remove">X</button></td>`;
+            tbody.appendChild(tr);
+            update();
+        }
+
+        function update() {
+            let total = 0;
+            tbody.querySelectorAll('tr').forEach(r => {
+                const q = parseFloat(r.querySelector('.qty').value) || 0;
+                const c = parseFloat(r.querySelector('.cost').value) || 0;
+                const t = q * c;
+                r.querySelector('.line-total').textContent = t.toFixed(2);
+                total += t;
+            });
+            document.getElementById('grandTotal').textContent = total.toFixed(2);
+        }
+
+        tbody.addEventListener('input', e => {
+            if (e.target.classList.contains('med-name')) {
+                const id = medMap.get(e.target.value.trim().toLowerCase());
+                e.target.closest('tr').querySelector('.med-id').value = id || '';
+            }
+            update();
+        });
+
+        tbody.addEventListener('click', e => {
+            if (e.target.classList.contains('remove')) {
+                e.target.closest('tr').remove();
+                update();
+            }
+        });
+
+        document.getElementById('addRow').addEventListener('click', () => addRow());
+
+        form.addEventListener('submit', e => {
+            const rows = [...tbody.querySelectorAll('tr')];
+            if (rows.length === 0) {
+                e.preventDefault();
+                alert('Add at least one medicine.');
+                return;
+            }
+            for (const r of rows) {
+                if (!r.querySelector('.med-id').value) {
+                    e.preventDefault();
+                    alert('Pick each medicine from the list.');
+                    return;
+                }
+            }
+            rows.forEach((r, i) => {
+                r.querySelector('.med-id').name = `Lines[${i}].MedicineId`;
+                r.querySelector('.batch').name = `Lines[${i}].BatchNumber`;
+                r.querySelector('.expiry').name = `Lines[${i}].ExpiryDate`;
+                r.querySelector('.unit').name = `Lines[${i}].Unit`;
+                r.querySelector('.qty').name = `Lines[${i}].Quantity`;
+                r.querySelector('.cost').name = `Lines[${i}].UnitCost`;
+            });
+        });
+
+        if (initial.length > 0) initial.forEach(addRow);
+        else addRow();
+    </script>
+}

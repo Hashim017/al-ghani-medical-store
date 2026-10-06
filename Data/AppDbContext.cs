@@ -39,6 +39,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
             prop.SetScale(2);
         }
 
+        // Cost per tablet needs more decimals
+        b.Entity<Batch>().Property(x => x.CostPricePerTablet).HasPrecision(18, 4);
+        b.Entity<SaleItem>().Property(x => x.CostPerTablet).HasPrecision(18, 4);
+
         // Never delete a parent that has children. Keeps history safe.
         foreach (var fk in b.Model.GetEntityTypes()
                      .SelectMany(t => t.GetForeignKeys()))

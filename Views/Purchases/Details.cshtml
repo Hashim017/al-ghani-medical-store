@@ -1,0 +1,52 @@
+@model AlGhaniMedicalStore.Models.Purchase
+@{
+    ViewData["Title"] = "Purchase " + Model.Id;
+}
+
+<h2>Purchase #@Model.Id</h2>
+
+<p>
+    <strong>Supplier:</strong> @Model.Supplier?.Name<br />
+    <strong>Date:</strong> @Model.PurchaseDate.ToString("dd MMM yyyy")<br />
+    <strong>Bill no:</strong> @Model.BillNumber<br />
+    <strong>Payment:</strong> @Model.PaymentType
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Expiry</th>
+            <th>Unit</th>
+            <th class="text-end">Qty</th>
+            <th class="text-end">Tablets added</th>
+            <th class="text-end">Cost per unit</th>
+            <th class="text-end">Line total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model.Items)
+        {
+        <tr>
+            <td>@i.Batch?.Medicine?.Name</td>
+            <td>@i.Batch?.BatchNumber</td>
+            <td>@i.Batch?.ExpiryDate.ToString("dd MMM yyyy")</td>
+            <td>@i.UnitBought</td>
+            <td class="text-end">@i.Quantity</td>
+            <td class="text-end">@i.TabletsAdded</td>
+            <td class="text-end">@i.UnitCost.ToString("N2")</td>
+            <td class="text-end">@i.LineTotal.ToString("N2")</td>
+        </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7" class="text-end">Total</th>
+            <th class="text-end">@Model.Total.ToString("N2")</th>
+        </tr>
+    </tfoot>
+</table>
+
+<a asp-action="Index" class="btn btn-light">Back</a>
+<a asp-action="Create" class="btn btn-primary">New Purchase</a>
