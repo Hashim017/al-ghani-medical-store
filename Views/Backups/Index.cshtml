@@ -1,0 +1,43 @@
+@model List<System.IO.FileInfo>
+    @{
+    ViewData["Title"] = "Backups";
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Backups</h2>
+        <form asp-action="Run" method="post">
+            <button class="btn btn-primary">Backup now</button>
+        </form>
+    </div>
+
+    @if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">The last backup failed: @ViewBag.Error</div>
+}
+
+    <p class="text-muted">
+        A backup is saved every day on its own. Folder: <strong>@ViewBag.Folder</strong>
+    </p>
+
+    @if (Model.Count == 0)
+{
+    <div class="panel empty">No backups yet. Press Backup now.</div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>File</th><th>Date</th><th class="text-end">Size</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var f in Model)
+            {
+            <tr>
+                <td>@f.Name</td>
+                <td>@f.CreationTime.ToString("dd MMM yyyy hh:mm tt")</td>
+                <td class="text-end">@((f.Length / 1024.0 / 1024.0).ToString("N1")) MB</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}

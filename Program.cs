@@ -25,6 +25,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddSingleton<BackupService>();
+builder.Services.AddHostedService<BackupWorker>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
