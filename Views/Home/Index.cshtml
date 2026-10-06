@@ -1,133 +1,142 @@
-﻿@model AlGhaniMedicalStore.ViewModels.DashboardVm
+﻿@using System.Globalization
+@model AlGhaniMedicalStore.ViewModels.DashboardVm
 @{
     ViewData["Title"] = "Dashboard";
     var t = Model.Today;
+    var inv = CultureInfo.InvariantCulture;
+    var max = Model.Week.Max(w => w.Total);
+    if (max <= 0) max = 1;
+    var cashK = t.SalesTotal > 0 ? t.Cash / t.SalesTotal : 0m;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Today</h2>
-    <a asp-controller="Billing" asp-action="Index" class="btn btn-success btn-lg">New bill</a>
-</div>
+<section class="hero">
+    <div class="hero-main">
+        <span class="eyebrow">Today's sales</span>
+        <div class="hero-num"><span data-count="@(t.SalesTotal.ToString("0.##", inv))" data-dec="2">0</span></div>
+        <div class="split" style="--k:@(cashK.ToString("0.###", inv))"><i></i></div>
+        <div class="split-legend">
+            <span><b class="dot cash"></b>Cash @t.Cash.ToString("N2")</span>
+            <span><b class="dot online"></b>Online @t.Online.ToString("N2")</span>
+        </div>
+        <div class="chips">
+            <a class="chip" asp-controller="Billing" asp-action="Index">New bill</a>
+            <a class="chip" asp-controller="Purchases" asp-action="Create">New purchase</a>
+            <a class="chip" asp-controller="Medicines" asp-action="Create">Add medicine</a>
+            <a class="chip" asp-controller="Reports" asp-action="Daily">Daily report</a>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Last 7 days</h5>
+            <span class="text-muted small">Sales</span>
+        </div>
+        <div class="bars">
+            @foreach (var w in Model.Week)
+            {
+                var k = w.Total / max;
+            <div class="bar">
+                <em>@w.Total.ToString("N0")</em>
+                <i style="--k:@(k.ToString("0.###", inv))"></i>
+                <span>@w.Label</span>
+            </div>
+            }
+        </div>
+    </div>
+</section>
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="text-muted">Sales</div>
-                <div class="fs-4 fw-bold">@t.SalesTotal.ToString("N2")</div>
-                <div class="small text-muted">@t.Bills bills</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="text-muted">Cash</div>
-                <div class="fs-4 fw-bold">@t.Cash.ToString("N2")</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="text-muted">Online</div>
-                <div class="fs-4 fw-bold">@t.Online.ToString("N2")</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="text-muted">Profit</div>
-                <div class="fs-4 fw-bold">@t.Profit.ToString("N2")</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <a asp-controller="Reports" asp-action="Expiry" class="text-decoration-none">
-            <div class="card border-danger h-100">
-                <div class="card-body">
-                    <div class="text-muted">Already expired, still in stock</div>
-                    <div class="fs-3 fw-bold text-danger">@Model.ExpiredCount</div>
-                </div>
-            </div>
+    <div class="col-6 col-lg">
+        <a class="tile tone-blue" asp-controller="Billing" asp-action="History">
+            <span class="t-ico"><svg class="ico"><use href="#i-list" /></svg></span>
+            <div class="t-num" data-count="@t.Bills">0</div>
+            <div class="t-lbl">Bills today</div>
         </a>
     </div>
-    <div class="col-md-4">
-        <a asp-controller="Reports" asp-action="Expiry" class="text-decoration-none">
-            <div class="card border-warning h-100">
-                <div class="card-body">
-                    <div class="text-muted">Expiring in @Model.AlertDays days</div>
-                    <div class="fs-3 fw-bold text-warning">@Model.ExpiringCount</div>
-                </div>
-            </div>
+    <div class="col-6 col-lg">
+        <a class="tile tone-green" asp-controller="Reports" asp-action="Daily">
+            <span class="t-ico"><svg class="ico"><use href="#i-chart" /></svg></span>
+            <div class="t-num" data-count="@(t.Profit.ToString("0.##", inv))" data-dec="2">0</div>
+            <div class="t-lbl">Profit today</div>
         </a>
     </div>
-    <div class="col-md-4">
-        <a asp-controller="Reports" asp-action="LowStock" class="text-decoration-none">
-            <div class="card border-primary h-100">
-                <div class="card-body">
-                    <div class="text-muted">Low stock</div>
-                    <div class="fs-3 fw-bold text-primary">@Model.LowStockCount</div>
-                </div>
-            </div>
+    <div class="col-6 col-lg">
+        <a class="tile tone-red" asp-controller="Reports" asp-action="Expiry">
+            <span class="t-ico"><svg class="ico"><use href="#i-clock" /></svg></span>
+            <div class="t-num" data-count="@Model.ExpiredCount">0</div>
+            <div class="t-lbl">Expired in stock</div>
+        </a>
+    </div>
+    <div class="col-6 col-lg">
+        <a class="tile tone-amber" asp-controller="Reports" asp-action="Expiry">
+            <span class="t-ico"><svg class="ico"><use href="#i-clock" /></svg></span>
+            <div class="t-num" data-count="@Model.ExpiringCount">0</div>
+            <div class="t-lbl">Expiring in @Model.AlertDays days</div>
+        </a>
+    </div>
+    <div class="col-6 col-lg">
+        <a class="tile" asp-controller="Reports" asp-action="LowStock">
+            <span class="t-ico"><svg class="ico"><use href="#i-alert" /></svg></span>
+            <div class="t-num" data-count="@Model.LowStockCount">0</div>
+            <div class="t-lbl">Low stock</div>
         </a>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <h5>Expiring soon</h5>
-        @if (Model.Expiring.Count == 0)
-        {
-        <p class="text-muted">Nothing is expiring soon.</p>
-        }
-        else
-        {
-        <table class="table table-sm table-striped">
-            <thead><tr><th>Medicine</th><th>Batch</th><th>Expiry</th><th class="text-end">Tablets</th></tr></thead>
-            <tbody>
-                @foreach (var r in Model.Expiring)
-                    {
-                <tr>
-                    <td>@r.MedicineName</td>
-                    <td>@r.BatchNumber</td>
-                    <td>@r.ExpiryDate.ToString("dd MMM yyyy") <span class="text-muted small">@r.DaysLeft d</span></td>
-                    <td class="text-end">@r.QuantityLeft</td>
-                </tr>
-                    }
-            </tbody>
-        </table>
-        <a asp-controller="Reports" asp-action="Expiry">See all</a>
-        }
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Expiring soon</h5>
+                <a asp-controller="Reports" asp-action="Expiry">See all</a>
+            </div>
+            @if (Model.Expiring.Count == 0)
+            {
+            <div class="empty">Nothing is expiring soon.</div>
+            }
+            else
+            {
+                foreach (var r in Model.Expiring)
+                {
+            <div class="row-item">
+                <div>
+                    <b>@r.MedicineName</b>
+                    <small>Batch @r.BatchNumber · @r.QuantityLeft tablets · @r.ExpiryDate.ToString("dd MMM yyyy")</small>
+                </div>
+                <span class="pill @(r.DaysLeft <= 30 ? "pill-red" : "pill-amber")">@r.DaysLeft days</span>
+            </div>
+                }
+            }
+        </div>
     </div>
 
     <div class="col-lg-6">
-        <h5>Low stock</h5>
-        @if (Model.LowStock.Count == 0)
-        {
-        <p class="text-muted">All medicines are above their low stock level.</p>
-        }
-        else
-        {
-        <table class="table table-sm table-striped">
-            <thead><tr><th>Medicine</th><th>Rack</th><th class="text-end">Stock</th><th class="text-end">Level</th></tr></thead>
-            <tbody>
-                @foreach (var r in Model.LowStock)
-                    {
-                <tr>
-                    <td>@r.Name</td>
-                    <td>@r.Rack</td>
-                    <td class="text-end text-danger fw-bold">@r.Stock</td>
-                    <td class="text-end">@r.ReorderLevel</td>
-                </tr>
-                    }
-            </tbody>
-        </table>
-        <a asp-controller="Reports" asp-action="LowStock">See all</a>
-        }
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Low stock</h5>
+                <a asp-controller="Reports" asp-action="LowStock">See all</a>
+            </div>
+            @if (Model.LowStock.Count == 0)
+            {
+            <div class="empty">All medicines are above their low stock level.</div>
+            }
+            else
+            {
+                foreach (var r in Model.LowStock)
+                {
+                    var fill = r.ReorderLevel > 0 ? Math.Min(1.0, (double)r.Stock / r.ReorderLevel) : 0;
+            <div class="row-item">
+                <div>
+                    <b>@r.Name</b>
+                    <small>Rack @(string.IsNullOrWhiteSpace(r.Rack) ? "-" : r.Rack)</small>
+                </div>
+                <div class="text-end">
+                    <span class="pill @(r.Stock == 0 ? "pill-red" : "pill-amber")">@r.Stock of @r.ReorderLevel</span>
+                    <div class="meter ms-auto" style="--k:@(fill.ToString("0.##", inv))"><i></i></div>
+                </div>
+            </div>
+                }
+            }
+        </div>
     </div>
 </div>

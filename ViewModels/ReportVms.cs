@@ -51,6 +51,7 @@ public class DashboardVm
 	public int LowStockCount { get; set; }
 	public List<ExpiryRow> Expiring { get; set; } = new();
 	public List<LowStockRow> LowStock { get; set; } = new();
+	public List<DayPoint> Week { get; set; } = new();
 }
 
 public class ExpiryPageVm
@@ -58,4 +59,10 @@ public class ExpiryPageVm
 	public int Days { get; set; }
 	public List<ExpiryRow> Expired { get; set; } = new();
 	public List<ExpiryRow> Expiring { get; set; } = new();
+}
+
+public class DayPoint
+{
+	public string Label { get; set; } = "";
+	public decimal Total { get; set; }
 }

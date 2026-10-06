@@ -1,77 +1,107 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    var ctl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var act = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string On(string c, string? a = null) => ctl == c && (a == null || act == a) ? " active" : "";
+    var billingOn = ctl == "Billing" && act != "History" ? " active" : "";
+}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Al-Ghani Medical Store</title>
-    <script type="importmap"></script>
+    <script>try { document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light'); } catch (e) { }</script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AlGhaniMedicalStore.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Al-Ghani Medical Store</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark fw-bold" asp-controller="Billing" asp-action="Index">Billing</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Billing" asp-action="History">Sales</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Reports" asp-action="Daily">Daily report</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Reports" asp-action="Expiry">Expiry</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Reports" asp-action="LowStock">Low stock</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Medicines" asp-action="Index">Medicines</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Suppliers" asp-action="Index">Suppliers</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Purchases" asp-action="Index">Purchases</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Categories" asp-action="Index">Categories</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Companies" asp-action="Index">Companies</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Generics" asp-action="Index">Generics</a>
-                        </li>
-                    </ul>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></symbol>
+        <symbol id="i-card" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></symbol>
+        <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></symbol>
+        <symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.5 20.5 3.5 13.5a4.95 4.95 0 0 1 7-7l7 7a4.95 4.95 0 0 1-7 7z" /><path d="m8.5 8.5 7 7" /></symbol>
+        <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></symbol>
+        <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" /></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></symbol>
+        <symbol id="i-truck" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></symbol>
+        <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></symbol>
+        <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" /><line x1="9" y1="6" x2="9.01" y2="6" /><line x1="15" y1="6" x2="15.01" y2="6" /><line x1="9" y1="10" x2="9.01" y2="10" /><line x1="15" y1="10" x2="15.01" y2="10" /><path d="M9 22v-4h6v4" /></symbol>
+        <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6" /><path d="M10 3v6L4.5 19a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 9V3" /></symbol>
+        <symbol id="i-undo" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></symbol>
+    </svg>
+
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark"><svg class="ico" style="stroke:#fff;width:24px;height:24px"><use href="#i-pill" /></svg></span>
+                <span><b>Al-Ghani</b><small>Medical Store</small></span>
+            </a>
+
+            <div class="nav-group">Main</div>
+            <a class="nav-item-link@(On("Home"))" asp-controller="Home" asp-action="Index"><svg class="ico"><use href="#i-home" /></svg>Dashboard</a>
+            <a class="nav-item-link@(billingOn)" asp-controller="Billing" asp-action="Index"><svg class="ico"><use href="#i-card" /></svg>Billing</a>
+            <a class="nav-item-link@(On("Billing", "History"))" asp-controller="Billing" asp-action="History"><svg class="ico"><use href="#i-list" /></svg>Sales</a>
+
+            <div class="nav-group">Stock</div>
+            <a class="nav-item-link@(On("Medicines"))" asp-controller="Medicines" asp-action="Index"><svg class="ico"><use href="#i-pill" /></svg>Medicines</a>
+            <a class="nav-item-link@(On("Purchases"))" asp-controller="Purchases" asp-action="Index"><svg class="ico"><use href="#i-box" /></svg>Purchases</a>
+            <a class="nav-item-link@(On("Reports", "Expiry"))" asp-controller="Reports" asp-action="Expiry"><svg class="ico"><use href="#i-clock" /></svg>Expiry</a>
+            <a class="nav-item-link@(On("Reports", "LowStock"))" asp-controller="Reports" asp-action="LowStock"><svg class="ico"><use href="#i-alert" /></svg>Low stock</a>
+
+            <div class="nav-group">Reports</div>
+            <a class="nav-item-link@(On("Reports", "Daily"))" asp-controller="Reports" asp-action="Daily"><svg class="ico"><use href="#i-chart" /></svg>Daily report</a>
+
+            <div class="nav-group">Setup</div>
+            <a class="nav-item-link@(On("Suppliers"))" asp-controller="Suppliers" asp-action="Index"><svg class="ico"><use href="#i-truck" /></svg>Suppliers</a>
+            <a class="nav-item-link@(On("Categories"))" asp-controller="Categories" asp-action="Index"><svg class="ico"><use href="#i-tag" /></svg>Categories</a>
+            <a class="nav-item-link@(On("Companies"))" asp-controller="Companies" asp-action="Index"><svg class="ico"><use href="#i-building" /></svg>Companies</a>
+            <a class="nav-item-link@(On("Generics"))" asp-controller="Generics" asp-action="Index"><svg class="ico"><use href="#i-flask" /></svg>Generics</a>
+
+            <div class="side-foot"><span class="live"></span>Running on this PC, no internet needed</div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <button class="icon-btn d-lg-none" id="menuBtn" type="button"><svg class="ico"><use href="#i-menu" /></svg></button>
+                <div>
+                    <div class="fw-bold" id="greet">Hello</div>
+                    <div class="small text-muted" id="clock"></div>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <button class="kbtn" id="palBtn" type="button">
+                        <svg class="ico"><use href="#i-search" /></svg>
+                        <span class="d-none d-md-inline">Search or jump</span>
+                        <kbd class="d-none d-md-inline">Ctrl K</kbd>
+                    </button>
+                    <button class="icon-btn" id="themeBtn" type="button" title="Dark mode"><svg class="ico"><use href="#i-moon" /></svg></button>
+                    <a class="btn btn-primary" asp-controller="Billing" asp-action="Index">New bill</a>
+                </div>
+            </header>
+
+            <main class="page">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Al-Ghani Medical Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <div class="palette-back" id="palette">
+        <div class="palette">
+            <input id="palInput" placeholder="Type a page name" autocomplete="off" />
+            <div id="palList"></div>
         </div>
-    </footer>
+    </div>
+
+    @if (TempData["Ok"] is string ok)
+    {
+    <div data-toast="@ok" hidden></div>
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

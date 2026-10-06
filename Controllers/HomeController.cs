@@ -26,7 +26,8 @@ public class HomeController : Controller
             ExpiredCount = expired.Count,
             LowStockCount = low.Count,
             Expiring = expiring.Take(8).ToList(),
-            LowStock = low.Take(8).ToList()
+            LowStock = low.Take(8).ToList(),
+            Week = await _reports.GetWeekAsync()
         };
         return View(vm);
     }

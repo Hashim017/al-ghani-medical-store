@@ -108,6 +108,29 @@ public class ReportService
         return rows;
     }
 
+    public async Task<List<DayPoint>> GetWeekAsync()
+    {
+        var start = DateTime.Today.AddDays(-6);
+
+        var rows = await _db.Sales
+            .Where(s => s.SaleDate >= start)
+            .GroupBy(s => s.SaleDate.Date)
+            .Select(g => new { Day = g.Key, Total = g.Sum(x => x.Total) })
+            .ToListAsync();
+
+        var list = new List<DayPoint>();
+        for (int i = 0; i < 7; i++)
+        {
+            var d = start.AddDays(i);
+            list.Add(new DayPoint
+            {
+                Label = d.ToString("ddd"),
+                Total = rows.FirstOrDefault(r => r.Day == d)?.Total ?? 0
+            });
+        }
+        return list;
+    }
+
     public async Task<List<LowStockRow>> GetLowStockAsync()
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
