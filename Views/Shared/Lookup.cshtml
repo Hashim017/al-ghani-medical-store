@@ -1,0 +1,40 @@
+@model AlGhaniMedicalStore.ViewModels.LookupVm
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<h2>@Model.Title</h2>
+
+@if (TempData["Error"] != null)
+{
+<div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form asp-controller="@Model.ControllerName" asp-action="Create" method="post" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input name="name" class="form-control" placeholder="Name" required />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary">Add</button>
+    </div>
+</form>
+
+<table class="table table-striped" style="max-width:500px">
+    <thead>
+        <tr><th>Name</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+        <tr>
+            <td>@item.Name</td>
+            <td class="text-end">
+                <form asp-controller="@Model.ControllerName" asp-action="Delete" asp-route-id="@item.Id" method="post"
+                      onsubmit="return confirm('Delete this item?');">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>

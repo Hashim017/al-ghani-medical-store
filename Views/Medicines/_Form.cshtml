@@ -1,0 +1,91 @@
+@model AlGhaniMedicalStore.Models.Medicine
+
+<form method="post" style="max-width:700px">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="IsActive" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" placeholder="e.g. Panadol 500mg" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Form" class="form-label"></label>
+            <select asp-for="Form" class="form-select">
+                <option value="">Select</option>
+                <option>Tablet</option>
+                <option>Capsule</option>
+                <option>Syrup</option>
+                <option>Injection</option>
+                <option>Cream</option>
+                <option>Drops</option>
+                <option>Other</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="CategoryId" class="form-label">Category</label>
+            <select asp-for="CategoryId" asp-items="(SelectList)ViewBag.Categories" class="form-select">
+                <option value="">None</option>
+            </select>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="CompanyId" class="form-label">Company</label>
+            <select asp-for="CompanyId" asp-items="(SelectList)ViewBag.Companies" class="form-select">
+                <option value="">None</option>
+            </select>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="GenericId" class="form-label">Generic (Salt)</label>
+            <select asp-for="GenericId" asp-items="(SelectList)ViewBag.Generics" class="form-select">
+                <option value="">None</option>
+            </select>
+        </div>
+    </div>
+
+    <h5 class="mt-2">Units</h5>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="StripsPerBox" class="form-label">Strips in 1 box</label>
+            <input asp-for="StripsPerBox" type="number" min="1" class="form-control" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="TabletsPerStrip" class="form-label">Tablets in 1 strip</label>
+            <input asp-for="TabletsPerStrip" type="number" min="1" class="form-control" />
+        </div>
+    </div>
+
+    <h5>Sale prices</h5>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="BoxPrice" class="form-label">Box price</label>
+            <input asp-for="BoxPrice" type="number" step="0.01" min="0" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="StripPrice" class="form-label">Strip price</label>
+            <input asp-for="StripPrice" type="number" step="0.01" min="0" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="TabletPrice" class="form-label">Tablet price</label>
+            <input asp-for="TabletPrice" type="number" step="0.01" min="0" class="form-control" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="RackLocation" class="form-label">Rack location</label>
+            <input asp-for="RackLocation" class="form-control" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ReorderLevel" class="form-label">Low stock level in tablets</label>
+            <input asp-for="ReorderLevel" type="number" min="0" class="form-control" />
+        </div>
+    </div>
+
+    <button class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-light">Cancel</a>
+</form>

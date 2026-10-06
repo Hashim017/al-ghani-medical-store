@@ -1,0 +1,63 @@
+@model List<AlGhaniMedicalStore.Models.Medicine>
+    @{
+    ViewData["Title"] = "Medicines";
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Medicines</h2>
+        <a asp-action="Create" class="btn btn-primary">Add Medicine</a>
+    </div>
+
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-auto">
+            <input name="q" value="@ViewBag.Q" class="form-control" placeholder="Search name or salt" />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary">Search</button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Form</th>
+                <th>Company</th>
+                <th>Generic</th>
+                <th>Rack</th>
+                <th>Box</th>
+                <th>Strip</th>
+                <th>Tablet</th>
+                <th>Stock (tablets)</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in Model)
+        {
+            var stock = m.Batches.Sum(b => b.QuantityLeft);
+            <tr>
+                <td>@m.Name</td>
+                <td>@m.Form</td>
+                <td>@m.Company?.Name</td>
+                <td>@m.Generic?.Name</td>
+                <td>@m.RackLocation</td>
+                <td>@m.BoxPrice.ToString("0.##")</td>
+                <td>@m.StripPrice.ToString("0.##")</td>
+                <td>@m.TabletPrice.ToString("0.##")</td>
+                <td class="@(stock <= m.ReorderLevel ? "text-danger fw-bold" : "")">@stock</td>
+                <td>
+                    @if (m.IsActive) { <span class="badge bg-success">Active</span> }
+                    else { <span class="badge bg-secondary">Off</span> }
+                </td>
+                <td class="text-end text-nowrap">
+                    <a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form asp-action="Toggle" asp-route-id="@m.Id" method="post" class="d-inline">
+                        <button class="btn btn-sm btn-outline-secondary">@(m.IsActive ? "Turn off" : "Turn on")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
