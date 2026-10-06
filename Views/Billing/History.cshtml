@@ -1,0 +1,37 @@
+@model List<AlGhaniMedicalStore.Models.Sale>
+    @{
+    ViewData["Title"] = "Sales";
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Sales</h2>
+        <a asp-action="Index" class="btn btn-success">New bill</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Bill no</th>
+                <th>Date</th>
+                <th>Payment</th>
+                <th class="text-end">Lines</th>
+                <th class="text-end">Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.Id</td>
+                <td>@s.SaleDate.ToString("dd MMM yyyy hh:mm tt")</td>
+                <td>@s.PaymentType</td>
+                <td class="text-end">@s.Items.Count</td>
+                <td class="text-end">@s.Total.ToString("N2")</td>
+                <td class="text-end">
+                    <a asp-action="Receipt" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary">View</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>

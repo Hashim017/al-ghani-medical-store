@@ -1,0 +1,70 @@
+@model AlGhaniMedicalStore.Models.Sale
+@{
+    ViewData["Title"] = "Bill " + Model.Id;
+    var shop = ViewBag.Shop as AlGhaniMedicalStore.Models.Setting;
+}
+
+<style>
+    .receipt {
+        max-width: 380px;
+        margin: 0 auto;
+        font-family: monospace;
+    }
+
+        .receipt hr {
+            border-top: 1px dashed #000;
+            opacity: 1;
+        }
+
+    @@media print {
+        header, footer, .no-print {
+            display: none !important;
+        }
+
+        body {
+            margin: 0 !important;
+        }
+    }
+</style>
+
+<div class="receipt">
+    <div class="text-center">
+        <h4 class="mb-0">@(shop?.ShopName ?? "Al-Ghani Medical Store")</h4>
+        @if (!string.IsNullOrWhiteSpace(shop?.Address)) { <div>@shop!.Address</div> }
+        @if (!string.IsNullOrWhiteSpace(shop?.Phone)) { <div>@shop!.Phone</div> }
+    </div>
+    <hr />
+    <div>Bill no: @Model.Id</div>
+    <div>Date: @Model.SaleDate.ToString("dd MMM yyyy hh:mm tt")</div>
+    <div>Payment: @Model.PaymentType</div>
+    <hr />
+
+    <table style="width:100%">
+        @foreach (var i in Model.Items)
+        {
+        <tr>
+            <td colspan="2">@i.Batch?.Medicine?.Name</td>
+        </tr>
+        <tr>
+            <td>&nbsp;&nbsp;@i.Quantity @i.UnitSold x @i.UnitPrice.ToString("N2")</td>
+            <td class="text-end">@i.LineTotal.ToString("N2")</td>
+        </tr>
+        }
+    </table>
+
+    <hr />
+    <div class="d-flex justify-content-between"><span>Sub total</span><span>@Model.SubTotal.ToString("N2")</span></div>
+    @if (Model.Discount > 0)
+    {
+    <div class="d-flex justify-content-between"><span>Discount</span><span>-@Model.Discount.ToString("N2")</span></div>
+    }
+    <div class="d-flex justify-content-between fw-bold fs-5"><span>Total</span><span>@Model.Total.ToString("N2")</span></div>
+    <hr />
+    <div class="text-center">@(shop?.BillFooter ?? "Thank you")</div>
+</div>
+
+<div class="text-center mt-4 no-print">
+    <button class="btn btn-primary" onclick="window.print()">Print</button>
+    <a asp-action="Index" class="btn btn-success">New bill</a>
+    <a asp-action="History" class="btn btn-light">All bills</a>
+</div>
