@@ -1,0 +1,81 @@
+@model AlGhaniMedicalStore.ViewModels.ExpiryPageVm
+@{
+    ViewData["Title"] = "Expiry";
+}
+
+<h2>Expiry</h2>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-auto">
+        <label class="col-form-label">Show medicines expiring in the next</label>
+    </div>
+    <div class="col-auto">
+        <input type="number" name="days" min="1" max="730" value="@Model.Days" class="form-control" style="width:100px" />
+    </div>
+    <div class="col-auto">
+        <label class="col-form-label">days</label>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary">Show</button>
+    </div>
+</form>
+
+<h5 class="text-danger">Expired, still in stock</h5>
+@if (Model.Expired.Count == 0)
+{
+<p class="text-muted">None.</p>
+}
+else
+{
+<table class="table table-sm table-striped">
+    <thead>
+        <tr><th>Medicine</th><th>Batch</th><th>Expired on</th><th class="text-end">Tablets</th><th class="text-end">Cost value</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Expired)
+            {
+        <tr>
+            <td>@r.MedicineName</td>
+            <td>@r.BatchNumber</td>
+            <td>@r.ExpiryDate.ToString("dd MMM yyyy")</td>
+            <td class="text-end">@r.QuantityLeft</td>
+            <td class="text-end">@r.CostValue.ToString("N2")</td>
+        </tr>
+            }
+    </tbody>
+    <tfoot>
+        <tr class="fw-bold">
+            <td colspan="4" class="text-end">Total loss</td>
+            <td class="text-end">@Model.Expired.Sum(x => x.CostValue).ToString("N2")</td>
+        </tr>
+    </tfoot>
+</table>
+<p class="small text-muted">These batches are blocked from billing. Remove them from stock with a stock adjustment or a return to the supplier. We build those next.</p>
+}
+
+<h5 class="text-warning mt-4">Expiring in the next @Model.Days days</h5>
+@if (Model.Expiring.Count == 0)
+{
+<p class="text-muted">None.</p>
+}
+else
+{
+<table class="table table-sm table-striped">
+    <thead>
+        <tr><th>Medicine</th><th>Batch</th><th>Expiry</th><th class="text-end">Days left</th><th class="text-end">Tablets</th><th class="text-end">Cost value</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Expiring)
+            {
+        <tr>
+            <td>@r.MedicineName</td>
+            <td>@r.BatchNumber</td>
+            <td>@r.ExpiryDate.ToString("dd MMM yyyy")</td>
+            <td class="text-end">@r.DaysLeft</td>
+            <td class="text-end">@r.QuantityLeft</td>
+            <td class="text-end">@r.CostValue.ToString("N2")</td>
+        </tr>
+            }
+    </tbody>
+</table>
+}

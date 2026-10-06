@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AlGhaniMedicalStore.Data;
 using AlGhaniMedicalStore.Models;
+using AlGhaniMedicalStore.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+builder.Services.AddScoped<ReportService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

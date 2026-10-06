@@ -1,27 +1,37 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using AlGhaniMedicalStore.Models;
+using AlGhaniMedicalStore.Services;
+using AlGhaniMedicalStore.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AlGhaniMedicalStore.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly ReportService _reports;
+    public HomeController(ReportService reports) => _reports = reports;
 
-    public HomeController(ILogger<HomeController> logger)
+    public async Task<IActionResult> Index()
     {
-        _logger = logger;
+        var days = await _reports.GetAlertDaysAsync();
+        var expiring = await _reports.GetExpiringAsync(days);
+        var expired = await _reports.GetExpiredAsync();
+        var low = await _reports.GetLowStockAsync();
+
+        var vm = new DashboardVm
+        {
+            AlertDays = days,
+            Today = await _reports.GetDailyAsync(DateTime.Today),
+            ExpiringCount = expiring.Count,
+            ExpiredCount = expired.Count,
+            LowStockCount = low.Count,
+            Expiring = expiring.Take(8).ToList(),
+            LowStock = low.Take(8).ToList()
+        };
+        return View(vm);
     }
 
-    public IActionResult Index()
-    {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+    public IActionResult Privacy() => View();
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
