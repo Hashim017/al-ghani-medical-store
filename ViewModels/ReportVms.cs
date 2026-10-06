@@ -39,8 +39,11 @@ public class DailyReportVm
 	public decimal PurchaseCash { get; set; }
 	public decimal PurchaseOnline { get; set; }
 	public decimal PurchaseTotal => PurchaseCash + PurchaseOnline;
-	public decimal NetCash => Cash - PurchaseCash;
-	public List<TopItem> Top { get; set; } = new();
+    public decimal Refunds { get; set; }
+    public decimal SupplierCredit { get; set; }
+    public decimal NetSales => SalesTotal - Refunds;
+    public decimal NetCash => Cash - Refunds - PurchaseCash + SupplierCredit;
+    public List<TopItem> Top { get; set; } = new();
 }
 
 public class DashboardVm

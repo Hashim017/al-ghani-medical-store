@@ -27,7 +27,7 @@
     <div class="col-6 col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted">Sales total</div><div class="fs-4 fw-bold">@Model.SalesTotal.ToString("N2")</div>
+                <div class="text-muted">Net sales after refunds</div><div class="fs-4 fw-bold">@Model.NetSales.ToString("N2")</div>
             </div>
         </div>
     </div>
@@ -66,10 +66,14 @@
     </div>
 </div>
 
-<div class="alert alert-info" style="max-width:500px">
-    Cash in hand change for the day: <strong>@Model.NetCash.ToString("N2")</strong><br />
-    <span class="small">Cash sales minus cash purchases.</span>
-</div>
+<h5>Cash movement</h5>
+<table class="table table-sm mb-4" style="max-width:480px">
+    <tr><td>Cash sales</td><td class="text-end">@Model.Cash.ToString("N2")</td></tr>
+    <tr><td>Customer refunds</td><td class="text-end">-@Model.Refunds.ToString("N2")</td></tr>
+    <tr><td>Cash paid for purchases</td><td class="text-end">-@Model.PurchaseCash.ToString("N2")</td></tr>
+    <tr><td>Supplier credit received</td><td class="text-end">@Model.SupplierCredit.ToString("N2")</td></tr>
+    <tr class="fw-bold"><td>Cash movement today</td><td class="text-end">@Model.NetCash.ToString("N2")</td></tr>
+</table>
 
 <h5>Top selling medicines</h5>
 @if (Model.Top.Count == 0)

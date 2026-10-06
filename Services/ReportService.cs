@@ -40,6 +40,22 @@ public class ReportService
             .SumAsync(i => (decimal?)(i.LineTotal - i.CostPerTablet * i.TabletsDeducted)) ?? 0;
         vm.Profit = gross - vm.Discount;
 
+        // Customer returns lower the sales and the profit
+        vm.Refunds = await _db.SaleReturns
+            .Where(r => r.ReturnDate >= from && r.ReturnDate < to)
+            .SumAsync(r => (decimal?)r.RefundTotal) ?? 0;
+
+        var returnedCost = await _db.SaleReturnItems
+            .Where(r => r.SaleReturn!.ReturnDate >= from && r.SaleReturn.ReturnDate < to)
+            .SumAsync(r => (decimal?)(r.SaleItem!.CostPerTablet * r.TabletsReturned)) ?? 0;
+
+        vm.Profit -= vm.Refunds - returnedCost;
+
+        // Money the supplier gave back for returned stock
+        vm.SupplierCredit = await _db.PurchaseReturns
+            .Where(r => r.ReturnDate >= from && r.ReturnDate < to)
+            .SumAsync(r => (decimal?)r.CreditTotal) ?? 0;
+
         vm.PurchaseCash = await purchases.Where(p => p.PaymentType == PaymentType.Cash)
             .SumAsync(p => (decimal?)p.Total) ?? 0;
         vm.PurchaseOnline = await purchases.Where(p => p.PaymentType == PaymentType.Online)
