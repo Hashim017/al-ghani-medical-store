@@ -30,7 +30,8 @@
         <div class="col-md-6 mb-3">
             <label class="form-label">Change in tablets, use minus to remove</label>
             <div class="input-group">
-                <input asp-for="Change" type="number" class="form-control" id="change" />
+                <input name="Change" id="change" type="number" class="form-control"
+                       placeholder="Example: -10" value="@(Model.Change == 0 ? "" : Model.Change.ToString())" />
                 <button type="button" class="btn btn-outline-danger" id="all">Remove all</button>
             </div>
         </div>

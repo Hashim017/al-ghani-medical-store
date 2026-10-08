@@ -1,3 +1,5 @@
+@using AlGhaniMedicalStore.Models
+
 @model AlGhaniMedicalStore.Models.Sale
 @{
     ViewData["Title"] = "Bill " + Model.Id;
@@ -46,7 +48,7 @@
             <td colspan="2">@i.Batch?.Medicine?.Name</td>
         </tr>
         <tr>
-            <td>&nbsp;&nbsp;@i.Quantity @i.UnitSold x @i.UnitPrice.ToString("N2")</td>
+            <td>&nbsp;&nbsp;@i.Quantity @(i.UnitSold == SellUnit.Tablet && i.Batch?.Medicine?.UsesStrips == false ? "Piece" : i.UnitSold.ToString()) x @i.UnitPrice.ToString("N2")</td>
             <td class="text-end">@i.LineTotal.ToString("N2")</td>
         </tr>
         }

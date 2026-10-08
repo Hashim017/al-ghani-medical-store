@@ -79,7 +79,8 @@
     <script>
         const meds = @Html.Raw(Json.Serialize(meds));
         const initial = @Html.Raw(Json.Serialize(initial));
-        const medMap = new Map(meds.map(m => [m.name.toLowerCase(), m.id]));
+        const medByName = new Map(meds.map(m => [m.name.toLowerCase(), m]));
+        const medById = new Map(meds.map(m => [m.id, m]));
 
         const form = document.getElementById('purchaseForm');
         const tbody = document.getElementById('rows');
@@ -89,9 +90,19 @@
                 .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        function unitOptions(usesStrips, selected) {
+            const opts = usesStrips
+                ? [[1, 'Box'], [2, 'Strip'], [3, 'Tablet']]
+                : [[1, 'Box'], [3, 'Piece']];
+            if (!opts.some(o => o[0] === selected)) selected = usesStrips ? 2 : 3;
+            return opts.map(o =>
+                `<option value="${o[0]}" ${o[0] === selected ? 'selected' : ''}>${o[1]}</option>`).join('');
+        }
+
         function addRow(d) {
             d = d || {};
-            const unit = d.unit || 2;
+            const med = d.id ? medById.get(d.id) : null;
+            const usesStrips = med ? med.usesStrips : true;
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
@@ -101,13 +112,7 @@
                 </td>
                 <td><input class="form-control batch" required value="${esc(d.batch || '')}" /></td>
                 <td><input type="date" class="form-control expiry" required value="${d.expiry || ''}" /></td>
-                <td>
-                    <select class="form-select unit">
-                        <option value="1" ${unit == 1 ? 'selected' : ''}>Box</option>
-                        <option value="2" ${unit == 2 ? 'selected' : ''}>Strip</option>
-                        <option value="3" ${unit == 3 ? 'selected' : ''}>Tablet</option>
-                    </select>
-                </td>
+                <td><select class="form-select unit">${unitOptions(usesStrips, d.unit || 2)}</select></td>
                 <td><input type="number" min="1" class="form-control qty" required value="${d.qty || ''}" /></td>
                 <td><input type="number" min="0" step="any" class="form-control cost" required value="${d.cost === undefined ? '' : d.cost}" /></td>
                 <td class="text-end line-total">0.00</td>
@@ -130,8 +135,11 @@
 
         tbody.addEventListener('input', e => {
             if (e.target.classList.contains('med-name')) {
-                const id = medMap.get(e.target.value.trim().toLowerCase());
-                e.target.closest('tr').querySelector('.med-id').value = id || '';
+                const tr = e.target.closest('tr');
+                const m = medByName.get(e.target.value.trim().toLowerCase());
+                tr.querySelector('.med-id').value = m ? m.id : '';
+                const sel = tr.querySelector('.unit');
+                sel.innerHTML = unitOptions(m ? m.usesStrips : true, parseInt(sel.value));
             }
             update();
         });

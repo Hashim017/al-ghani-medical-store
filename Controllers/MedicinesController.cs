@@ -39,9 +39,9 @@ public class MedicinesController : Controller
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
-        [Bind("Name,Form,RackLocation,ReorderLevel,StripsPerBox,TabletsPerStrip,BoxPrice,StripPrice,TabletPrice,CategoryId,CompanyId,GenericId")] Medicine m)
+                [Bind("Name,Form,RackLocation,ReorderLevel,UsesStrips,StripsPerBox,TabletsPerStrip,BoxPrice,StripPrice,TabletPrice,CategoryId,CompanyId,GenericId")] Medicine m)
     {
-        CheckValues(m);
+        Prepare(m);
         if (!ModelState.IsValid)
         {
             await LoadLists();
@@ -63,10 +63,10 @@ public class MedicinesController : Controller
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id,
-        [Bind("Id,Name,Form,RackLocation,ReorderLevel,IsActive,StripsPerBox,TabletsPerStrip,BoxPrice,StripPrice,TabletPrice,CategoryId,CompanyId,GenericId")] Medicine m)
+                [Bind("Id,Name,Form,RackLocation,ReorderLevel,IsActive,UsesStrips,StripsPerBox,TabletsPerStrip,BoxPrice,StripPrice,TabletPrice,CategoryId,CompanyId,GenericId")] Medicine m)
     {
         if (id != m.Id) return BadRequest();
-        CheckValues(m);
+        Prepare(m);
         if (!ModelState.IsValid)
         {
             await LoadLists();
@@ -89,12 +89,40 @@ public class MedicinesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private void CheckValues(Medicine m)
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
     {
-        if (m.StripsPerBox < 1)
-            ModelState.AddModelError(nameof(m.StripsPerBox), "Must be at least 1.");
-        if (m.TabletsPerStrip < 1)
-            ModelState.AddModelError(nameof(m.TabletsPerStrip), "Must be at least 1.");
+        var m = await _db.Medicines.FindAsync(id);
+        if (m == null) return RedirectToAction(nameof(Index));
+
+        if (await _db.Batches.AnyAsync(b => b.MedicineId == id))
+        {
+            TempData["Err"] = $"{m.Name} has purchase history. Turn it off instead.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        _db.Medicines.Remove(m);
+        await _db.SaveChangesAsync();
+        TempData["Ok"] = "Medicine deleted.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    private void Prepare(Medicine m)
+    {
+        // Empty boxes are allowed. They keep the default value.
+        foreach (var key in new[] { "StripsPerBox", "TabletsPerStrip", "BoxPrice", "StripPrice", "TabletPrice", "ReorderLevel" })
+            ModelState.Remove(key);
+
+        if (m.StripsPerBox < 1) m.StripsPerBox = 1;
+        if (m.TabletsPerStrip < 1) m.TabletsPerStrip = 1;
+
+        if (!m.UsesStrips)
+        {
+            // Syrups and cosmetics are counted in pieces
+            m.TabletsPerStrip = 1;
+            m.StripPrice = m.TabletPrice;
+        }
+
         if (m.ReorderLevel < 0)
             ModelState.AddModelError(nameof(m.ReorderLevel), "Cannot be negative.");
         if (m.BoxPrice < 0 || m.StripPrice < 0 || m.TabletPrice < 0)

@@ -41,6 +41,7 @@ public class Medicine
     public string? RackLocation { get; set; }
     public int ReorderLevel { get; set; }       // in tablets
     public bool IsActive { get; set; } = true;
+    public bool UsesStrips { get; set; } = true;
 
     // Unit setup
     public int StripsPerBox { get; set; } = 1;

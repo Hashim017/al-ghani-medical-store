@@ -45,6 +45,7 @@ public class StockAdjustmentsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AdjustVm vm)
     {
+        ModelState.Remove(nameof(AdjustVm.Change));
         var batch = await _db.Batches.FirstOrDefaultAsync(b => b.Id == vm.BatchId);
 
         if (batch == null)

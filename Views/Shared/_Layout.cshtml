@@ -71,6 +71,8 @@
             <div class="side-foot"><span class="live"></span>Running on this PC, no internet needed</div>
         </aside>
 
+        <script>try { document.getElementById('sidebar').scrollTop = parseInt(sessionStorage.getItem('sideScroll') || '0'); } catch (e) { }</script>
+
         <div class="main">
             <header class="topbar">
                 <button class="icon-btn d-lg-none" id="menuBtn" type="button"><svg class="ico"><use href="#i-menu" /></svg></button>
@@ -105,6 +107,11 @@
     @if (TempData["Ok"] is string ok)
     {
     <div data-toast="@ok" hidden></div>
+    }
+
+    @if (TempData["Err"] is string err)
+    {
+    <div data-toast="@err" data-type="err" hidden></div>
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

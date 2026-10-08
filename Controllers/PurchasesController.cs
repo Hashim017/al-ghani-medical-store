@@ -178,7 +178,7 @@ public class PurchasesController : Controller
         ViewBag.Meds = await _db.Medicines
             .Where(m => m.IsActive)
             .OrderBy(m => m.Name)
-            .Select(m => new MedOption(m.Id, m.Name))
+            .Select(m => new MedOption(m.Id, m.Name, m.UsesStrips))
             .ToListAsync();
     }
 }

@@ -45,6 +45,8 @@ public class PurchaseReturnsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PurchaseReturnVm vm)
     {
+        ModelState.Remove(nameof(PurchaseReturnVm.Tablets));
+        ModelState.Remove(nameof(PurchaseReturnVm.Credit));
         var supplier = await _db.Suppliers.FindAsync(vm.SupplierId);
         var batch = await _db.Batches.FirstOrDefaultAsync(b => b.Id == vm.BatchId);
 

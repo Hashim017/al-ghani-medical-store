@@ -44,7 +44,7 @@
                 <td>@m.Generic?.Name</td>
                 <td>@m.RackLocation</td>
                 <td>@m.BoxPrice.ToString("0.##")</td>
-                <td>@m.StripPrice.ToString("0.##")</td>
+                <td>@(m.UsesStrips ? m.StripPrice.ToString("0.##") : "-")</td>
                 <td>@m.TabletPrice.ToString("0.##")</td>
                 <td class="@(stock <= m.ReorderLevel ? "text-danger fw-bold" : "")">@stock</td>
                 <td>
@@ -55,6 +55,10 @@
                     <a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-sm btn-outline-primary">Edit</a>
                     <form asp-action="Toggle" asp-route-id="@m.Id" method="post" class="d-inline">
                         <button class="btn btn-sm btn-outline-secondary">@(m.IsActive ? "Turn off" : "Turn on")</button>
+                    </form>
+                    <form asp-action="Delete" asp-route-id="@m.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('Delete @m.Name?');">
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
                     </form>
                 </td>
             </tr>

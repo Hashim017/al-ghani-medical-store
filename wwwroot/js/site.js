@@ -12,6 +12,10 @@
 
     // Mobile menu
     const side = $('#sidebar');
+    // Keep the sidebar scroll position between pages
+    window.addEventListener('pagehide', () => {
+        try { sessionStorage.setItem('sideScroll', side.scrollTop); } catch { }
+    });
     $('#menuBtn')?.addEventListener('click', e => { e.stopPropagation(); side.classList.toggle('open'); });
     document.addEventListener('click', e => {
         if (side && side.classList.contains('open') && !side.contains(e.target)) side.classList.remove('open');
@@ -59,7 +63,7 @@
         w.appendChild(t);
         setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3500);
     };
-    $$('[data-toast]').forEach(e => window.toast(e.dataset.toast));
+    $$('[data-toast]').forEach(e => window.toast(e.dataset.toast, e.dataset.type));
 
     // Command palette
     const back = $('#palette'), input = $('#palInput'), list = $('#palList');

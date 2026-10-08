@@ -25,11 +25,11 @@
                 <th>Medicine</th>
                 <th>Salt</th>
                 <th>Rack</th>
-                <th class="text-end">Stock (tablets)</th>
+                <th class="text-end">Stock</th>
                 <th>Nearest expiry</th>
                 <th class="text-end">Box</th>
                 <th class="text-end">Strip</th>
-                <th class="text-end">Tablet</th>
+                <th class="text-end">Tablet or piece</th>
             </tr>
         </thead>
         <tbody id="results"></tbody>
@@ -63,7 +63,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span>Discount</span>
                 <input name="discount" id="discount" type="number" min="0" step="0.01"
-                       value="@discVal.ToString("0.##")" class="form-control form-control-sm text-end" style="width:120px" />
+                       value="@(discVal == 0 ? "" : discVal.ToString("0.##"))" placeholder="0" class="form-control form-control-sm text-end" style="width:120px" />
             </div>
             <div class="d-flex justify-content-between mb-3">
                 <span class="fs-5">Total</span><strong class="fs-5" id="grandTotal">0.00</strong>
@@ -142,7 +142,7 @@
                     <td class="text-end">${out ? 'Out of stock' : m.stock}</td>
                     <td class="${cls}">${exp}</td>
                     <td class="text-end">${money(m.boxPrice)}</td>
-                    <td class="text-end">${money(m.stripPrice)}</td>
+                    <td class="text-end">${m.usesStrips ? money(m.stripPrice) : '-'}</td>
                     <td class="text-end">${money(m.tabletPrice)}</td>
                 </tr>`;
             }).join('');
@@ -161,7 +161,8 @@
                 ex.stock = m.stock;
             } else {
                 cart.push({
-                    medicineId: m.id, name: m.name, unit: 2, quantity: 1,
+                    medicineId: m.id, name: m.name, unit: m.usesStrips ? 2 : 3, quantity: 1,
+                    usesStrips: m.usesStrips,
                     stripsPerBox: m.stripsPerBox, tabletsPerStrip: m.tabletsPerStrip,
                     boxPrice: m.boxPrice, stripPrice: m.stripPrice, tabletPrice: m.tabletPrice,
                     stock: m.stock
@@ -182,8 +183,8 @@
                     <td>
                         <select class="form-select form-select-sm unit">
                             <option value="1" ${c.unit === 1 ? 'selected' : ''}>Box</option>
-                            <option value="2" ${c.unit === 2 ? 'selected' : ''}>Strip</option>
-                            <option value="3" ${c.unit === 3 ? 'selected' : ''}>Tablet</option>
+                            ${c.usesStrips === false ? '' : `<option value="2" ${c.unit === 2 ? 'selected' : ''}>Strip</option>`}
+                            <option value="3" ${c.unit === 3 ? 'selected' : ''}>${c.usesStrips === false ? 'Piece' : 'Tablet'}</option>
                         </select>
                     </td>
                     <td><input type="number" min="1" class="form-control form-control-sm qty" value="${c.quantity}" /></td>

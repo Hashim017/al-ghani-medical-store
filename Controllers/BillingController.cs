@@ -39,6 +39,7 @@ public class BillingController : Controller
                 name = m.Name,
                 generic = m.Generic != null ? m.Generic.Name : "",
                 form = m.Form,
+                usesStrips = m.UsesStrips,
                 rack = m.RackLocation,
                 stripsPerBox = m.StripsPerBox,
                 tabletsPerStrip = m.TabletsPerStrip,

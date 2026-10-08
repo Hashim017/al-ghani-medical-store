@@ -56,4 +56,23 @@ public class SuppliersController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var s = await _db.Suppliers.FindAsync(id);
+        if (s == null) return RedirectToAction(nameof(Index));
+
+        if (await _db.Purchases.AnyAsync(p => p.SupplierId == id) ||
+            await _db.PurchaseReturns.AnyAsync(r => r.SupplierId == id))
+        {
+            TempData["Err"] = $"{s.Name} has purchase history. Turn it off instead.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        _db.Suppliers.Remove(s);
+        await _db.SaveChangesAsync();
+        TempData["Ok"] = "Supplier deleted.";
+        return RedirectToAction(nameof(Index));
+    }
 }

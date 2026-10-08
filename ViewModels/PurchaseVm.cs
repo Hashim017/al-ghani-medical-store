@@ -3,7 +3,7 @@ using AlGhaniMedicalStore.Models;
 
 namespace AlGhaniMedicalStore.ViewModels;
 
-public record MedOption(int Id, string Name);
+public record MedOption(int Id, string Name, bool UsesStrips);
 
 public class PurchaseCreateVm
 {
