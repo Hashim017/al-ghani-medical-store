@@ -829,7 +829,74 @@ tbody tr[style*="--i"] {
         transform: translateY(10px);
     }
 
+/* ---------- Popup dialog ---------- */
+.dlg-back {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(2,10,10,.55);
+    backdrop-filter: blur(4px);
+    z-index: 5000;
+}
 
+    .dlg-back.open {
+        display: flex;
+    }
+
+.dlg {
+    width: min(420px, 100%);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.4);
+    padding: 26px;
+    text-align: center;
+    animation: pop .2s ease;
+}
+
+.dlg-ico {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(245,158,11,.16);
+    color: #f59e0b;
+}
+
+    .dlg-ico.danger {
+        background: rgba(225,29,72,.14);
+        color: #e11d48;
+    }
+
+    .dlg-ico .ico {
+        width: 28px;
+        height: 28px;
+    }
+
+.dlg h5 {
+    margin-bottom: 6px;
+}
+
+.dlg p {
+    color: var(--muted);
+    margin-bottom: 20px;
+    white-space: pre-line;
+}
+
+.dlg-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+    .dlg-actions .btn {
+        min-width: 110px;
+    }
 
 /* ---------- Animations ---------- */
 @keyframes rise {

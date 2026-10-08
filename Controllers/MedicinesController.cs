@@ -39,17 +39,31 @@ public class MedicinesController : Controller
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
-                [Bind("Name,Form,RackLocation,ReorderLevel,UsesStrips,StripsPerBox,TabletsPerStrip,BoxPrice,StripPrice,TabletPrice,CategoryId,CompanyId,GenericId")] Medicine m)
+    [Bind("Name,Form,RackLocation,ReorderLevel,UsesStrips,StripsPerBox,TabletsPerStrip,BoxPrice,StripPrice,TabletPrice,CategoryId,CompanyId,GenericId")] Medicine m,
+    string? next)
     {
         Prepare(m);
+        m.Name = (m.Name ?? "").Trim();
+        if (await _db.Medicines.AnyAsync(x => x.Name == m.Name && x.Id != m.Id))
+            ModelState.AddModelError(nameof(m.Name), "This medicine already exists.");
+        m.Name = (m.Name ?? "").Trim();
+
+        if (await _db.Medicines.AnyAsync(x => x.Name == m.Name))
+            ModelState.AddModelError(nameof(m.Name), "This medicine already exists.");
+
         if (!ModelState.IsValid)
         {
             await LoadLists();
             return View(m);
         }
+
         m.IsActive = true;
         _db.Medicines.Add(m);
         await _db.SaveChangesAsync();
+
+        if (next == "stock")
+            return RedirectToAction("Create", "OpeningStock", new { medicineId = m.Id });
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -105,6 +119,37 @@ public class MedicinesController : Controller
         await _db.SaveChangesAsync();
         TempData["Ok"] = "Medicine deleted.";
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> QuickCreate(string? name, string? form, bool usesStrips, int stripsPerBox, int tabletsPerStrip)
+    {
+        name = (name ?? "").Trim();
+        if (name == "")
+            return BadRequest(new { error = "Name is required." });
+        if (await _db.Medicines.AnyAsync(x => x.Name == name))
+            return BadRequest(new { error = "This medicine already exists." });
+
+        var m = new Medicine
+        {
+            Name = name,
+            Form = string.IsNullOrWhiteSpace(form) ? null : form,
+            UsesStrips = usesStrips,
+            StripsPerBox = stripsPerBox < 1 ? 1 : stripsPerBox,
+            TabletsPerStrip = usesStrips ? (tabletsPerStrip < 1 ? 1 : tabletsPerStrip) : 1
+        };
+        _db.Medicines.Add(m);
+        await _db.SaveChangesAsync();
+
+        return Json(new
+        {
+            id = m.Id,
+            name = m.Name,
+            usesStrips = m.UsesStrips,
+            boxPrice = 0,
+            stripPrice = 0,
+            tabletPrice = 0
+        });
     }
 
     private void Prepare(Medicine m)

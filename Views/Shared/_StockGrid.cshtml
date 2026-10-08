@@ -1,0 +1,322 @@
+@using AlGhaniMedicalStore.Models
+@using AlGhaniMedicalStore.ViewModels
+@model List<PurchaseLineVm>
+    @{
+    var meds = (List<MedOption>)ViewBag.Meds;
+    var opening = (ViewBag.Opening as bool?) == true;
+    var startId = ViewBag.StartId is int sid ? sid : 0;
+    var initial = Model.Select(l => new
+    {
+        id = l.MedicineId,
+        name = meds.FirstOrDefault(m => m.Id == l.MedicineId)?.Name ?? "",
+        batch = l.BatchNumber ?? "",
+        expiry = l.ExpiryDate == default ? "" : l.ExpiryDate.ToString("yyyy-MM-dd"),
+        unit = (int)l.Unit,
+        qty = l.Quantity,
+        cost = l.UnitCost,
+        sell = l.SellPrice
+    }).ToList();
+    }
+
+    <datalist id="medList">
+        @foreach (var m in meds)
+    {
+        <option value="@m.Name"></option>
+    }
+    </datalist>
+
+    <div class="table-responsive">
+        <table class="table align-middle" style="min-width:1000px">
+            <thead>
+                <tr>
+                    <th style="min-width:220px">Medicine</th>
+                    <th>@(opening ? "Batch no, optional" : "Batch no")</th>
+                    <th>Expiry</th>
+                    <th>Unit</th>
+                    <th style="width:90px">Qty</th>
+                    <th style="width:120px">Cost per unit</th>
+                    <th style="width:130px">Sell price per unit</th>
+                    <th class="text-end">Line total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+
+    <button type="button" class="btn btn-outline-primary" id="addRow">Add row</button>
+    <button type="button" class="btn btn-outline-secondary" id="newMed">New medicine</button>
+
+    <h4 class="text-end mt-3">Total: <span id="grandTotal">0.00</span></h4>
+
+    <div class="dlg-back" id="qm">
+        <div class="dlg" style="text-align:left">
+            <h5 class="mb-3">New medicine</h5>
+            @Html.AntiForgeryToken()
+            <div class="mb-2">
+                <label class="form-label">Name</label>
+                <input id="qmName" class="form-control" placeholder="Example: Panadol 500mg" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Type</label>
+                <select id="qmType" class="form-select">
+                    <option value="">Select</option>
+                    <option>Tablet</option>
+                    <option>Capsule</option>
+                    <option>Syrup</option>
+                    <option>Injection</option>
+                    <option>Cream</option>
+                    <option>Drops</option>
+                    <option>Cosmetic</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" id="qmStrips" checked />
+                <label class="form-check-label" for="qmStrips">Sold in strips</label>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-2">
+                    <label class="form-label" id="qmBoxLbl">Strips in 1 box</label>
+                    <input id="qmPerBox" type="number" min="1" class="form-control" placeholder="1" />
+                </div>
+                <div class="col-6 mb-2" id="qmStripCol">
+                    <label class="form-label">Tablets in 1 strip</label>
+                    <input id="qmPerStrip" type="number" min="1" class="form-control" placeholder="1" />
+                </div>
+            </div>
+            <div class="text-danger small mb-2" id="qmErr"></div>
+            <div class="dlg-actions" style="justify-content:flex-end">
+                <button type="button" class="btn btn-light" id="qmCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="qmSave">Save medicine</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const OPENING = @(opening ? "true" : "false");
+        const meds = @Html.Raw(Json.Serialize(meds));
+        const initial = @Html.Raw(Json.Serialize(initial));
+        const startId = @startId;
+
+        const medByName = new Map(meds.map(m => [m.name.toLowerCase(), m]));
+        const medById = new Map(meds.map(m => [m.id, m]));
+        const form = document.getElementById('stockForm');
+        const tbody = document.getElementById('rows');
+        const dataList = document.getElementById('medList');
+        const qm = document.getElementById('qm');
+        document.body.appendChild(qm);
+
+        const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        function unitOptions(usesStrips, selected) {
+            const opts = usesStrips
+                ? [[1, 'Box'], [2, 'Strip'], [3, 'Tablet']]
+                : [[1, 'Box'], [3, 'Piece']];
+            if (!opts.some(o => o[0] === selected)) selected = usesStrips ? 2 : 3;
+            return opts.map(o =>
+                `<option value="${o[0]}" ${o[0] === selected ? 'selected' : ''}>${o[1]}</option>`).join('');
+        }
+
+        function priceNow(m, unit) {
+            if (!m) return 0;
+            return unit === 1 ? m.boxPrice : unit === 2 ? m.stripPrice : m.tabletPrice;
+        }
+
+        function hint(tr) {
+            const m = medById.get(parseInt(tr.querySelector('.med-id').value));
+            const unit = parseInt(tr.querySelector('.unit').value);
+            const p = priceNow(m, unit);
+            tr.querySelector('.sell').placeholder = m ? (p > 0 ? 'Now ' + p : 'Not set') : 'Sell price';
+        }
+
+        function addRow(d) {
+            d = d || {};
+            const med = d.id ? medById.get(d.id) : null;
+            const usesStrips = med ? med.usesStrips : true;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <input class="form-control med-name" list="medList" autocomplete="off"
+                           placeholder="Type medicine name" value="${esc(d.name || '')}" />
+                    <input type="hidden" class="med-id" value="${d.id || ''}" />
+                </td>
+                <td><input class="form-control batch" ${OPENING ? 'placeholder="Auto"' : 'required'} value="${esc(d.batch || '')}" /></td>
+                <td><input type="date" class="form-control expiry" required value="${d.expiry || ''}" /></td>
+                <td><select class="form-select unit">${unitOptions(usesStrips, d.unit || 2)}</select></td>
+                <td><input type="number" min="1" class="form-control qty" required value="${d.qty || ''}" /></td>
+                <td><input type="number" min="0" step="any" class="form-control cost" required value="${d.cost ? d.cost : ''}" /></td>
+                <td><input type="number" min="0" step="any" class="form-control sell" value="${d.sell ? d.sell : ''}" /></td>
+                <td class="text-end line-total">0.00</td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger remove">X</button></td>`;
+            tbody.appendChild(tr);
+            hint(tr);
+            update();
+        }
+
+        function update() {
+            let total = 0;
+            tbody.querySelectorAll('tr').forEach(r => {
+                const q = parseFloat(r.querySelector('.qty').value) || 0;
+                const c = parseFloat(r.querySelector('.cost').value) || 0;
+                r.querySelector('.line-total').textContent = (q * c).toFixed(2);
+                total += q * c;
+            });
+            document.getElementById('grandTotal').textContent = total.toFixed(2);
+        }
+
+        tbody.addEventListener('input', e => {
+            if (e.target.classList.contains('med-name')) {
+                const tr = e.target.closest('tr');
+                const m = medByName.get(e.target.value.trim().toLowerCase());
+                tr.querySelector('.med-id').value = m ? m.id : '';
+                const sel = tr.querySelector('.unit');
+                sel.innerHTML = unitOptions(m ? m.usesStrips : true, parseInt(sel.value));
+                hint(tr);
+            }
+            update();
+        });
+
+        tbody.addEventListener('change', e => {
+            if (e.target.classList.contains('unit')) hint(e.target.closest('tr'));
+        });
+
+        tbody.addEventListener('click', e => {
+            if (e.target.classList.contains('remove')) {
+                e.target.closest('tr').remove();
+                update();
+            }
+        });
+
+        document.getElementById('addRow').addEventListener('click', () => addRow());
+
+        // New medicine popup
+        const qmName = document.getElementById('qmName');
+        const qmType = document.getElementById('qmType');
+        const qmStrips = document.getElementById('qmStrips');
+        const qmErr = document.getElementById('qmErr');
+
+        function qmApply() {
+            const on = qmStrips.checked;
+            document.getElementById('qmStripCol').style.display = on ? '' : 'none';
+            document.getElementById('qmBoxLbl').textContent = on ? 'Strips in 1 box' : 'Pieces in 1 box, leave empty if none';
+        }
+        qmStrips.addEventListener('change', qmApply);
+        qmType.addEventListener('change', () => {
+            if (qmType.value === 'Tablet' || qmType.value === 'Capsule') qmStrips.checked = true;
+            else if (qmType.value) qmStrips.checked = false;
+            qmApply();
+        });
+
+        function openQuick(prefill) {
+            qmName.value = prefill || '';
+            qmErr.textContent = '';
+            qm.classList.add('open');
+            qmName.focus();
+            qmApply();
+        }
+
+        document.getElementById('newMed').addEventListener('click', () => openQuick(''));
+        document.getElementById('qmCancel').addEventListener('click', () => qm.classList.remove('open'));
+
+        document.getElementById('qmSave').addEventListener('click', async () => {
+            const fd = new FormData();
+            fd.append('__RequestVerificationToken', qm.querySelector('input[name="__RequestVerificationToken"]').value);
+            fd.append('name', qmName.value);
+            fd.append('form', qmType.value);
+            fd.append('usesStrips', qmStrips.checked);
+            fd.append('stripsPerBox', document.getElementById('qmPerBox').value || 1);
+            fd.append('tabletsPerStrip', document.getElementById('qmPerStrip').value || 1);
+
+            let res, data;
+            try {
+                res = await fetch('/Medicines/QuickCreate', { method: 'POST', body: fd });
+                data = await res.json();
+            } catch {
+                qmErr.textContent = 'Could not save. Try again.';
+                return;
+            }
+            if (!res.ok) { qmErr.textContent = data.error || 'Could not save.'; return; }
+
+            qm.classList.remove('open');
+            meds.push(data);
+            medByName.set(data.name.toLowerCase(), data);
+            medById.set(data.id, data);
+            const opt = document.createElement('option');
+            opt.value = data.name;
+            dataList.appendChild(opt);
+
+            const empty = [...tbody.querySelectorAll('tr')].find(r => !r.querySelector('.med-id').value);
+            if (empty) {
+                empty.querySelector('.med-name').value = data.name;
+                empty.querySelector('.med-id').value = data.id;
+                empty.querySelector('.unit').innerHTML = unitOptions(data.usesStrips, 2);
+                hint(empty);
+            } else {
+                addRow({ id: data.id, name: data.name });
+            }
+            window.toast('Medicine added.');
+        });
+
+        // Save
+        form.addEventListener('submit', e => {
+            const rows = [...tbody.querySelectorAll('tr')];
+            if (rows.length === 0) {
+                e.preventDefault();
+                alert('Add at least one medicine.');
+                return;
+            }
+
+            const unknown = rows.find(r => !r.querySelector('.med-id').value && r.querySelector('.med-name').value.trim());
+            if (unknown) {
+                e.preventDefault();
+                const typed = unknown.querySelector('.med-name').value.trim();
+                window.showDialog({
+                    confirm: true,
+                    title: 'Not in the list',
+                    message: '"' + typed + '" is not in the medicine list. Add it as a new medicine?',
+                    okText: 'Add medicine'
+                }).then(y => { if (y) openQuick(typed); });
+                return;
+            }
+            if (rows.some(r => !r.querySelector('.med-id').value)) {
+                e.preventDefault();
+                alert('Pick a medicine in every row.');
+                return;
+            }
+
+            rows.forEach((r, i) => {
+                r.querySelector('.med-id').name = `Lines[${i}].MedicineId`;
+                r.querySelector('.batch').name = `Lines[${i}].BatchNumber`;
+                r.querySelector('.expiry').name = `Lines[${i}].ExpiryDate`;
+                r.querySelector('.unit').name = `Lines[${i}].Unit`;
+                r.querySelector('.qty').name = `Lines[${i}].Quantity`;
+                r.querySelector('.cost').name = `Lines[${i}].UnitCost`;
+                r.querySelector('.sell').name = `Lines[${i}].SellPrice`;
+            });
+
+            const loss = rows.filter(r => {
+                const s = parseFloat(r.querySelector('.sell').value) || 0;
+                const c = parseFloat(r.querySelector('.cost').value) || 0;
+                return s > 0 && s < c;
+            }).length;
+
+            if (loss > 0) {
+                e.preventDefault();
+                window.showDialog({
+                    confirm: true,
+                    danger: true,
+                    title: 'Selling below cost',
+                    message: loss + ' row(s) have a sell price lower than the cost price. Save anyway?',
+                    okText: 'Save anyway'
+                }).then(y => { if (y) form.submit(); });
+            }
+        });
+
+        if (initial.length > 0) initial.forEach(addRow);
+        else if (startId && medById.has(startId)) addRow({ id: startId, name: medById.get(startId).name });
+        else addRow();
+    })();
+    </script>

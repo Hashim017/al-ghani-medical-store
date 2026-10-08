@@ -3,22 +3,11 @@
 @model PurchaseCreateVm
 @{
     ViewData["Title"] = "New Purchase";
-    var meds = (List<MedOption>)ViewBag.Meds;
-    var initial = Model.Lines.Select(l => new
-    {
-        id = l.MedicineId,
-        name = meds.FirstOrDefault(m => m.Id == l.MedicineId)?.Name ?? "",
-        batch = l.BatchNumber ?? "",
-        expiry = l.ExpiryDate == default ? "" : l.ExpiryDate.ToString("yyyy-MM-dd"),
-        unit = (int)l.Unit,
-        qty = l.Quantity,
-        cost = l.UnitCost
-    }).ToList();
 }
 
 <h2>New Purchase</h2>
 
-<form asp-action="Create" method="post" id="purchaseForm">
+<form asp-action="Create" method="post" id="stockForm">
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="row mb-3">
@@ -42,142 +31,8 @@
         </div>
     </div>
 
-    <datalist id="medList">
-        @foreach (var m in meds)
-        {
-        <option value="@m.Name"></option>
-        }
-    </datalist>
-
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th style="min-width:220px">Medicine</th>
-                    <th>Batch no</th>
-                    <th>Expiry</th>
-                    <th>Unit</th>
-                    <th style="width:90px">Qty</th>
-                    <th style="width:120px">Cost per unit</th>
-                    <th class="text-end">Line total</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-        </table>
-    </div>
-
-    <button type="button" class="btn btn-outline-primary" id="addRow">Add medicine</button>
-
-    <h4 class="text-end mt-3">Total: <span id="grandTotal">0.00</span></h4>
+    <partial name="_StockGrid" model="Model.Lines" />
 
     <button class="btn btn-primary">Save purchase</button>
     <a asp-action="Index" class="btn btn-light">Cancel</a>
 </form>
-
-@section Scripts {
-    <script>
-        const meds = @Html.Raw(Json.Serialize(meds));
-        const initial = @Html.Raw(Json.Serialize(initial));
-        const medByName = new Map(meds.map(m => [m.name.toLowerCase(), m]));
-        const medById = new Map(meds.map(m => [m.id, m]));
-
-        const form = document.getElementById('purchaseForm');
-        const tbody = document.getElementById('rows');
-
-        function esc(s) {
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        function unitOptions(usesStrips, selected) {
-            const opts = usesStrips
-                ? [[1, 'Box'], [2, 'Strip'], [3, 'Tablet']]
-                : [[1, 'Box'], [3, 'Piece']];
-            if (!opts.some(o => o[0] === selected)) selected = usesStrips ? 2 : 3;
-            return opts.map(o =>
-                `<option value="${o[0]}" ${o[0] === selected ? 'selected' : ''}>${o[1]}</option>`).join('');
-        }
-
-        function addRow(d) {
-            d = d || {};
-            const med = d.id ? medById.get(d.id) : null;
-            const usesStrips = med ? med.usesStrips : true;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <input class="form-control med-name" list="medList" autocomplete="off"
-                           placeholder="Type medicine name" value="${esc(d.name || '')}" />
-                    <input type="hidden" class="med-id" value="${d.id || ''}" />
-                </td>
-                <td><input class="form-control batch" required value="${esc(d.batch || '')}" /></td>
-                <td><input type="date" class="form-control expiry" required value="${d.expiry || ''}" /></td>
-                <td><select class="form-select unit">${unitOptions(usesStrips, d.unit || 2)}</select></td>
-                <td><input type="number" min="1" class="form-control qty" required value="${d.qty || ''}" /></td>
-                <td><input type="number" min="0" step="any" class="form-control cost" required value="${d.cost === undefined ? '' : d.cost}" /></td>
-                <td class="text-end line-total">0.00</td>
-                <td><button type="button" class="btn btn-sm btn-outline-danger remove">X</button></td>`;
-            tbody.appendChild(tr);
-            update();
-        }
-
-        function update() {
-            let total = 0;
-            tbody.querySelectorAll('tr').forEach(r => {
-                const q = parseFloat(r.querySelector('.qty').value) || 0;
-                const c = parseFloat(r.querySelector('.cost').value) || 0;
-                const t = q * c;
-                r.querySelector('.line-total').textContent = t.toFixed(2);
-                total += t;
-            });
-            document.getElementById('grandTotal').textContent = total.toFixed(2);
-        }
-
-        tbody.addEventListener('input', e => {
-            if (e.target.classList.contains('med-name')) {
-                const tr = e.target.closest('tr');
-                const m = medByName.get(e.target.value.trim().toLowerCase());
-                tr.querySelector('.med-id').value = m ? m.id : '';
-                const sel = tr.querySelector('.unit');
-                sel.innerHTML = unitOptions(m ? m.usesStrips : true, parseInt(sel.value));
-            }
-            update();
-        });
-
-        tbody.addEventListener('click', e => {
-            if (e.target.classList.contains('remove')) {
-                e.target.closest('tr').remove();
-                update();
-            }
-        });
-
-        document.getElementById('addRow').addEventListener('click', () => addRow());
-
-        form.addEventListener('submit', e => {
-            const rows = [...tbody.querySelectorAll('tr')];
-            if (rows.length === 0) {
-                e.preventDefault();
-                alert('Add at least one medicine.');
-                return;
-            }
-            for (const r of rows) {
-                if (!r.querySelector('.med-id').value) {
-                    e.preventDefault();
-                    alert('Pick each medicine from the list.');
-                    return;
-                }
-            }
-            rows.forEach((r, i) => {
-                r.querySelector('.med-id').name = `Lines[${i}].MedicineId`;
-                r.querySelector('.batch').name = `Lines[${i}].BatchNumber`;
-                r.querySelector('.expiry').name = `Lines[${i}].ExpiryDate`;
-                r.querySelector('.unit').name = `Lines[${i}].Unit`;
-                r.querySelector('.qty').name = `Lines[${i}].Quantity`;
-                r.querySelector('.cost').name = `Lines[${i}].UnitCost`;
-            });
-        });
-
-        if (initial.length > 0) initial.forEach(addRow);
-        else addRow();
-    </script>
-}

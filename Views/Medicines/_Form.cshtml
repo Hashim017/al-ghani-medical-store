@@ -109,6 +109,10 @@
     </div>
 
     <button class="btn btn-primary">Save</button>
+    @if (Model.Id == 0)
+    {
+    <button name="next" value="stock" class="btn btn-outline-primary">Save and add stock</button>
+    }
     <a asp-action="Index" class="btn btn-light">Cancel</a>
 </form>
 

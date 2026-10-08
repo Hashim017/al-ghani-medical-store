@@ -1,0 +1,20 @@
+@model AlGhaniMedicalStore.ViewModels.OpeningVm
+@{
+    ViewData["Title"] = "Add current stock";
+}
+
+<h2>Add current stock</h2>
+<p class="text-muted">
+    Enter what is on the shelf now. Use the cost price you paid and the price you sell at.
+    If one medicine has different expiry dates, add one row for each date.
+    This is not counted as a purchase in the daily report.
+</p>
+
+<form asp-action="Create" method="post" id="stockForm">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <partial name="_StockGrid" model="Model.Lines" />
+
+    <button class="btn btn-primary">Save stock</button>
+    <a asp-controller="Medicines" asp-action="Index" class="btn btn-light">Cancel</a>
+</form>

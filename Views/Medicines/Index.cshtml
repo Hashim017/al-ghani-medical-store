@@ -3,10 +3,13 @@
     ViewData["Title"] = "Medicines";
     }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Medicines</h2>
-        <a asp-action="Create" class="btn btn-primary">Add Medicine</a>
-    </div>
+               <div class="d-flex justify-content-between align-items-center mb-3">
+                   <h2>Medicines</h2>
+                   <div>
+                       <a asp-controller="OpeningStock" asp-action="Create" class="btn btn-outline-primary">Add current stock</a>
+                       <a asp-action="Create" class="btn btn-primary">Add Medicine</a>
+                   </div>
+               </div>
 
     <form method="get" class="row g-2 mb-3">
         <div class="col-auto">

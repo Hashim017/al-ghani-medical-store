@@ -3,7 +3,12 @@ using AlGhaniMedicalStore.Models;
 
 namespace AlGhaniMedicalStore.ViewModels;
 
-public record MedOption(int Id, string Name, bool UsesStrips);
+public record MedOption(int Id, string Name, bool UsesStrips, decimal BoxPrice, decimal StripPrice, decimal TabletPrice);
+
+public class OpeningVm
+{
+    public List<PurchaseLineVm> Lines { get; set; } = new();
+}
 
 public class PurchaseCreateVm
 {
@@ -27,4 +32,5 @@ public class PurchaseLineVm
     public SellUnit Unit { get; set; } = SellUnit.Strip;
     public int Quantity { get; set; }
     public decimal UnitCost { get; set; }
+    public decimal? SellPrice { get; set; }
 }
