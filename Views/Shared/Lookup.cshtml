@@ -5,10 +5,7 @@
 
 <h2>@Model.Title</h2>
 
-@if (TempData["Error"] != null)
-{
-<div class="alert alert-danger">@TempData["Error"]</div>
-}
+
 
 <form asp-controller="@Model.ControllerName" asp-action="Create" method="post" class="row g-2 mb-3">
     <div class="col-auto">
@@ -30,7 +27,7 @@
             <td>@item.Name</td>
             <td class="text-end">
                 <form asp-controller="@Model.ControllerName" asp-action="Delete" asp-route-id="@item.Id" method="post"
-                      onsubmit="return confirm('Delete this item?');">
+                        data-confirm="Delete @(item.Name)?">
                     <button class="btn btn-sm btn-outline-danger">Delete</button>
                 </form>
             </td>

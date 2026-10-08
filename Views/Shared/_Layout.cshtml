@@ -104,6 +104,18 @@
         </div>
     </div>
 
+    <div class="dlg-back" id="dlg">
+        <div class="dlg">
+            <div class="dlg-ico" id="dlgIco"><svg class="ico"><use href="#i-alert" /></svg></div>
+            <h5 id="dlgTitle">Notice</h5>
+            <p id="dlgMsg"></p>
+            <div class="dlg-actions">
+                <button type="button" class="btn btn-light" id="dlgCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="dlgOk">OK</button>
+            </div>
+        </div>
+    </div>
+
     @if (TempData["Ok"] is string ok)
     {
     <div data-toast="@ok" hidden></div>
@@ -111,7 +123,11 @@
 
     @if (TempData["Err"] is string err)
     {
-    <div data-toast="@err" data-type="err" hidden></div>
+    <div data-dialog="@err" hidden></div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+    <div data-dialog="@error" hidden></div>
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

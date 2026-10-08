@@ -97,4 +97,62 @@
             else if (e.key === 'Escape') close();
         });
     }
+
+
+    // Popup dialogs, used instead of alert and confirm
+    const dlg = $('#dlg');
+    let dlgDone = null;
+
+    function closeDlg(result) {
+        dlg.classList.remove('open');
+        if (dlgDone) { const d = dlgDone; dlgDone = null; d(result); }
+    }
+
+    window.showDialog = opts => new Promise(resolve => {
+        if (dlgDone) closeDlg(false);
+        dlgDone = resolve;
+        $('#dlgTitle').textContent = opts.title || (opts.confirm ? 'Are you sure?' : 'Notice');
+        $('#dlgMsg').textContent = opts.message || '';
+        $('#dlgIco').className = 'dlg-ico' + (opts.danger ? ' danger' : '');
+        const ok = $('#dlgOk');
+        ok.textContent = opts.okText || 'OK';
+        ok.className = 'btn ' + (opts.danger ? 'btn-danger' : 'btn-primary');
+        $('#dlgCancel').style.display = opts.confirm ? '' : 'none';
+        dlg.classList.add('open');
+        ok.focus();
+    });
+
+    if (dlg) {
+        $('#dlgOk').addEventListener('click', () => closeDlg(true));
+        $('#dlgCancel').addEventListener('click', () => closeDlg(false));
+        dlg.addEventListener('click', e => { if (e.target === dlg) closeDlg(false); });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && dlg.classList.contains('open')) closeDlg(false);
+        });
+    }
+
+    // The browser alert now opens the popup
+    window.alert = msg => { window.showDialog({ message: String(msg) }); };
+
+    // Forms with data-confirm ask first
+    document.addEventListener('submit', async e => {
+        const form = e.target;
+        if (!form.dataset || !form.dataset.confirm) return;
+        e.preventDefault();
+        const btn = form.querySelector('button');
+        const danger = !!btn && btn.className.includes('danger');
+        const yes = await window.showDialog({
+            confirm: true,
+            danger: danger,
+            message: form.dataset.confirm,
+            okText: danger ? 'Delete' : 'Yes'
+        });
+        if (yes) form.submit();
+    });
+
+    // Messages sent by the server
+    const serverMsg = $('[data-dialog]');
+    if (serverMsg) {
+        window.showDialog({ title: 'Cannot continue', message: serverMsg.dataset.dialog, danger: true });
+    }
 })();

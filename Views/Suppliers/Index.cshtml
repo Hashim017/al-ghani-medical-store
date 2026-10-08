@@ -29,7 +29,7 @@
                         <button class="btn btn-sm btn-outline-secondary">@(s.IsActive ? "Turn off" : "Turn on")</button>
                     </form>
                     <form asp-action="Delete" asp-route-id="@s.Id" method="post" class="d-inline"
-                          onsubmit="return confirm('Delete @s.Name?');">
+                          data-confirm="Delete @(s.Name)? This cannot be undone.">
                         <button class="btn btn-sm btn-outline-danger">Delete</button>
                     </form>
                 </td>

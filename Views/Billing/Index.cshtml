@@ -11,7 +11,7 @@
 
 @if (!string.IsNullOrEmpty(error))
 {
-<div class="alert alert-danger">@error</div>
+<div data-dialog="@error" hidden></div>
 }
 
 <div class="mb-3">
